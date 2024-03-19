@@ -23,7 +23,7 @@ void handler(int sig){
  */
 int main(int argc, char **argv)
 {
-    int listenfd, connfd, port;
+    int listenfd, connfd;
     socklen_t clientlen;
     struct sockaddr_in clientaddr;
     char client_ip_string[INET_ADDRSTRLEN];
@@ -31,15 +31,9 @@ int main(int argc, char **argv)
     Signal(SIGCHLD,handler);
     pid_t child=1;
     
-    if (argc != 2) {
-        fprintf(stderr, "usage: %s <port>\n", argv[0]);
-        exit(0);
-    }
-    port = atoi(argv[1]);
-    
     clientlen = (socklen_t)sizeof(clientaddr);
 
-    listenfd = Open_listenfd(port);
+    listenfd = Open_listenfd(2121);
 
     for (int i=0 ; (i < NBRFILS) && (child!=0) ; i++){
         child = Fork();
