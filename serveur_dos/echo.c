@@ -5,14 +5,37 @@
 
 void echo(int connfd)
 {
-    size_t n;
     char buf[MAXLINE];
     rio_t rio;
+    int fd;
+    struct stat st;
+    off_t tailleFichier;
 
     Rio_readinitb(&rio, connfd);
-    while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
-        printf("server received %u bytes\n", (unsigned int)n);
-        Rio_writen(connfd, buf, n);
+    Rio_readlineb(&rio, buf, MAXLINE);
+
+    buf[strlen(buf)-1]='\0';
+
+    char name[MAXLINE+11]="./fichier/\0";
+    strcat(name,buf);
+
+    fd=open(name,O_RDONLY,0);
+    if(fd<0){
+        tailleFichier = -1;
+        Rio_writen(connfd, &tailleFichier, sizeof(off_t ));
     }
+    else{
+
+        fstat(fd,&st);   
+        tailleFichier=st.st_size;
+
+        Rio_writen(connfd, &tailleFichier, sizeof(off_t ));
+
+        char doc[tailleFichier];
+        Rio_readn(fd,doc,tailleFichier);
+        Rio_writen(connfd,doc,tailleFichier);
+        Close(fd);
+    }
+
 }
 
