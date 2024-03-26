@@ -24,10 +24,10 @@ int main(int argc, char **argv)
      * has not yet called "Accept" for this connection
      */
     printf("client connected to server OS\n");
+    printf("ftp> ");
     
     Fgets(buf, MAXLINE, stdin);
     Rio_writen(clientfd, buf, strlen(buf));
-
 
     Rio_readn(clientfd,&tailleFichier,sizeof(off_t));
     if(tailleFichier==-1){
@@ -36,14 +36,25 @@ int main(int argc, char **argv)
     else{
 
         char doc[tailleFichier];
+        time_t debut = time(NULL);
         Rio_readn(clientfd,doc,tailleFichier);
+        time_t fin = time(NULL);
         buf[strlen(buf)-1]='\0';
         char name[MAXLINE+11]="./fichier/\0";
         strcat(name,buf);
         resultatfd=open(name,O_WRONLY|O_CREAT|O_TRUNC,0644);
         write(resultatfd,doc,tailleFichier);
+        printf("transfer reussit\n");
+        printf("%ld bites resus en %ld seconde ",tailleFichier,(fin-debut));
+        if ((fin-debut)!=0){
+            printf("(%ld kbit/s)\n",(tailleFichier/(fin-debut)));   
+        }
+        else{
+            printf("(calcule imposible temps trop cour)\n");
+        }
     }
     
     Close(clientfd);
+
     exit(0);
 }
