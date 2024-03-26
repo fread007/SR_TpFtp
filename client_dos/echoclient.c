@@ -5,9 +5,10 @@
 
 int main(int argc, char **argv)
 {
-    int clientfd;
+    int clientfd,resultatfd;
     char buf[MAXLINE];
-    rio_t rio;
+    off_t tailleFichier;
+    //rio_t rio;
 
 
     /*
@@ -22,18 +23,21 @@ int main(int argc, char **argv)
      * and the server OS ... but it is possible that the server application
      * has not yet called "Accept" for this connection
      */
-    printf("client connected to server OS\n"); 
+    printf("client connected to server OS\n");
     
-    Rio_readinitb(&rio, clientfd);
+    Fgets(buf, MAXLINE, stdin);
+    Rio_writen(clientfd, buf, strlen(buf));
 
-    while (Fgets(buf, MAXLINE, stdin) != NULL) {
-        Rio_writen(clientfd, buf, strlen(buf));
-        if (Rio_readlineb(&rio, buf, MAXLINE) > 0) {
-            Fputs(buf, stdout);
-        } else { /* the server has prematurely closed the connection */
-            break;
-        }
-    }
+
+    Rio_readn(clientfd,&tailleFichier,sizeof(off_t));
+
+    char doc[tailleFichier];
+    Rio_readn(clientfd,doc,tailleFichier);
+
+    buf[strlen(buf)-1]='\0';
+    resultatfd=open(buf,O_WRONLY|O_CREAT|O_TRUNC,0644);
+    write(resultatfd,doc,tailleFichier);
+    
     Close(clientfd);
     exit(0);
 }
