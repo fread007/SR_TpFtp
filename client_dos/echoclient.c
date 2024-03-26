@@ -30,13 +30,19 @@ int main(int argc, char **argv)
 
 
     Rio_readn(clientfd,&tailleFichier,sizeof(off_t));
+    if(tailleFichier==-1){
+        fprintf(stderr,"erreur lors de l'ouverture du fichier\n");
+    }
+    else{
 
-    char doc[tailleFichier];
-    Rio_readn(clientfd,doc,tailleFichier);
-
-    buf[strlen(buf)-1]='\0';
-    resultatfd=open(buf,O_WRONLY|O_CREAT|O_TRUNC,0644);
-    write(resultatfd,doc,tailleFichier);
+        char doc[tailleFichier];
+        Rio_readn(clientfd,doc,tailleFichier);
+        buf[strlen(buf)-1]='\0';
+        char name[MAXLINE+11]="./fichier/\0";
+        strcat(name,buf);
+        resultatfd=open(name,O_WRONLY|O_CREAT|O_TRUNC,0644);
+        write(resultatfd,doc,tailleFichier);
+    }
     
     Close(clientfd);
     exit(0);
