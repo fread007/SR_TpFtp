@@ -42,6 +42,7 @@ int main(int argc, char **argv)
     Signal(SIGCHLD,handler);
     Signal(SIGINT,handler_term);
     pid_t child=1;
+    char continu;
     
     clientlen = (socklen_t)sizeof(clientaddr);
 
@@ -69,7 +70,9 @@ int main(int argc, char **argv)
         printf("server connected to %s (%s)\n", client_hostname,
             client_ip_string);
 
-        echo(connfd);
+        while((Rio_readn(connfd,&continu,sizeof(char)))==1){
+            echo(connfd);
+        }
         
         Close(connfd);
     }
