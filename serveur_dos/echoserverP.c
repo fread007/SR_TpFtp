@@ -11,23 +11,23 @@ pid_t Table_Fils[NB_PROC-1];
 
 void echo(int connfd);
 
-//handler pour signal SIGCHLD
+// handler pour signal SIGCHLD
 void handler(int sig){
 	pid_t pid;
     // tant qu'il y a un fils zombie on le termine
 	while((pid = waitpid(-1, NULL, WNOHANG)) > 0){}
 }
 
-//handler pour signal SIGINT <ctr+c>
+// handler pour signal SIGINT <ctr+c>
 void handler_term(int sig){
     printf("\nterminaison propre :\n");
-    //terminaison des fils
+    // terminaison des fils
     for(int i = 0; i < NB_PROC-1; i++){
-        printf("Fils %d : %d \n",i,Table_Fils[i]);
+        printf("Fils %d : %d \n", i, Table_Fils[i]);
         kill(Table_Fils[i], SIGKILL);
     }
-    fprintf(stderr,"terminaison des fils terminee\n");
-    fprintf(stderr,"arret du serveur UwU\n");
+    fprintf(stderr, "terminaison des fils terminee\n");
+    fprintf(stderr, "arret du serveur UwU\n");
     exit(0);
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
     listenfd = Open_listenfd(2121);
 
-    //creation des fils et resensement
+    // creation et recensement des fils
     for (int i=0 ; (i < (NB_PROC-1)); i++){
         child = Fork();
         if(child != 0){
@@ -61,14 +61,14 @@ int main(int argc, char **argv)
         }
     }
 
-    //redefinition du signal SIGINT du pere
-    if(child!=0){
-        Signal(SIGINT,handler_term);
+    // redefinition du signal SIGINT du pere
+    if(child != 0){
+        Signal(SIGINT, handler_term);
     }
     
 
     while (1) {
-        //tout les processus attende une connection  
+        // tous les processus attendent une connection  
         while((connfd = accept(listenfd, (SA *)&clientaddr, &clientlen)) < 0);
         /* determine the name of the client */
         Getnameinfo((SA *) &clientaddr, clientlen,
@@ -78,15 +78,15 @@ int main(int argc, char **argv)
         Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
                 INET_ADDRSTRLEN);
         
-        printf("server connected to %s (%s)\n", client_hostname,
+        printf("serveur connecté à %s (%s)\n", client_hostname,
             client_ip_string);
 
-        //teste si le clien veut continuer
+        // teste si le client veut continuer
         while((Rio_readn(connfd, &continu, sizeof(char))) == 1){
             echo(connfd);
         }
         
-        //fermeture de la connection
+        // fermeture de la connection
         Close(connfd);
     }
 }

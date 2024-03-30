@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     off_t lu, dejaLu;
 
     if(argc!=2){
-        printf("adresse serveur manquente. <<./echoclient IP>>\n");
+        printf("Adresse serveur manquente. Schema attendu: <<./echoclient IP>>\n");
         exit(0);
     }
 
@@ -31,7 +31,7 @@ int main(int argc, char **argv)
      * and the server OS ... but it is possible that the server application
      * has not yet called "Accept" for this connection
      */
-    printf("client connected to server OS\n");
+    printf("Client connecte au serveur OS\n");
     // boucle de requetes du client
     while(1){
         // debut de la boucle
@@ -69,12 +69,12 @@ int main(int argc, char **argv)
         else{
 
             // on recupere la taille d'un paquet
-            Rio_readn(clientfd, &taillePaquet,sizeof(off_t));
+            Rio_readn(clientfd, &taillePaquet, sizeof(off_t));
 
             // vu que l'on a un nom de fichier finissant par \n on remplace le dernier caractere par \0
             buf[strlen(buf)-1] = '\0';
 
-            // on rajoute le chemain d'acces des fichiers
+            // on rajoute le chemin d'acces des fichiers
             char name[MAXLINE+11] = "./fichier/\0";
             strcat(name, buf);
 
@@ -141,8 +141,7 @@ int main(int argc, char **argv)
                     printf("%.3f mega octets recus en %ld secondes (%.2f Mbit/s)\n", taille, (fin-debut), res);
                 }
                 else{
-                    printf("%.3f kilo octets recus en %ld secondes ",taille,(fin-debut));
-                    printf("(calcul impossible pour un transfert aussi rapide)\n");
+                    printf("%.3f kilo octets recus en %ld secondes (calcul impossible pour un transfert aussi rapide)\n",taille,(fin-debut));
                 }
             }
         }
