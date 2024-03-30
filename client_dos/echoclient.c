@@ -141,7 +141,7 @@ int main(int argc, char **argv)
                     printf("%.3f mega octets recus en %ld secondes (%.2f Mbit/s)\n", taille, (fin-debut), res);
                 }
                 else{
-                    printf("%.3f kilo octets recus en %ld secondes (calcul impossible pour un transfert aussi rapide)\n",taille,(fin-debut));
+                    printf("%.3f kilo octets recus en moins d'un seconde (%.2f kbit/s)\n", taille, taille);
                 }
             }
         }
