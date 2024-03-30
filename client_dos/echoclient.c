@@ -35,12 +35,15 @@ int main(int argc, char **argv)
     // boucle de requetes du client
     while(1){
         // debut de la boucle
-        printf("ftp> ");
+        do {
+            printf("ftp> ");
 
-        // recupere une ligne au clavier
-        // represente la commande a executer
-        // commandes implementees : get ; bye
-        Fgets(buf, MAXLINE, stdin);
+            // recupere une ligne au clavier
+            // represente la commande a executer
+            // commandes implementees : get ; bye
+            Fgets(buf, MAXLINE, stdin);
+        } while ((strcmp(buf, "bye\n") != 0) && (strncmp(buf, "get ", 4) != 0));
+        
 
         // teste si l'entree est la commande "bye"
         if(strcmp(buf, "bye\n") == 0){
