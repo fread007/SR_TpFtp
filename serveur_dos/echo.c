@@ -3,7 +3,7 @@
  */
 #include "csapp.h"
 
-#define TAILLE_PACKET 512
+#define TAILLE_PAQUET 512
 
 void echo(int connfd)
 {
@@ -11,39 +11,39 @@ void echo(int connfd)
     rio_t rio;
     int fd;
     struct stat st;
-    off_t tailleFichier,lu,taillepacket = TAILLE_PACKET;
+    off_t tailleFichier, lu, taillepaquet = TAILLE_PAQUET;
 
     Rio_readinitb(&rio, connfd);
     Rio_readlineb(&rio, buf, MAXLINE);
 
-    buf[strlen(buf)-1]='\0';
+    buf[strlen(buf)-1] = '\0';
 
-    char name[MAXLINE+11]="./fichier/\0";
+    char name[MAXLINE+11] = "./fichier/\0";
     strcat(name,buf);
-    fd=open(name,O_RDONLY,0);
-    if(fd<0){
+    fd = open(name, O_RDONLY, 0);
+    if(fd < 0){
         tailleFichier = -1;
         Rio_writen(connfd, &tailleFichier, sizeof(off_t ));
     }
     else{
 
-        fstat(fd,&st);   
-        tailleFichier=st.st_size;
+        fstat(fd, &st);   
+        tailleFichier = st.st_size;
 
-        Rio_writen(connfd, &tailleFichier, sizeof(off_t ));
-        Rio_writen(connfd, &taillepacket, sizeof(off_t));
+        Rio_writen(connfd, &tailleFichier, sizeof(off_t));
+        Rio_writen(connfd, &taillepaquet, sizeof(off_t));
 
-        Rio_readn(connfd,&lu,sizeof(off_t));
-        lseek(fd,lu,SEEK_SET);
+        Rio_readn(connfd, &lu, sizeof(off_t));
+        lseek(fd, lu, SEEK_SET);
 
-        char doc[taillepacket];
-        while((lu+taillepacket)<tailleFichier){
-            lu+=taillepacket;
-            Rio_readn(fd,doc,taillepacket);
-            Rio_writen(connfd,doc,taillepacket);
+        char doc[taillepaquet];
+        while((lu + taillepaquet) < tailleFichier){
+            lu += taillepaquet;
+            Rio_readn(fd, doc, taillepaquet);
+            Rio_writen(connfd, doc, taillepaquet);
         }
-        Rio_readn(fd,doc,tailleFichier-lu);
-        Rio_writen(connfd,doc,tailleFichier-lu);
+        Rio_readn(fd, doc, tailleFichier-lu);
+        Rio_writen(connfd, doc, tailleFichier-lu);
         Close(fd);
     }
 
