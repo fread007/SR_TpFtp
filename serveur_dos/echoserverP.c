@@ -11,20 +11,23 @@ pid_t Table_Fils[NB_PROC-1];
 
 void echo(int connfd);
 
-
+//handler pour signal SIGCHLD
 void handler(int sig){
 	pid_t pid;
     // tant qu'il y a un fils zombie on le termine
 	while((pid = waitpid(-1, NULL, WNOHANG)) > 0){}
 }
 
+//handler pour signal SIGINT <ctr+c>
 void handler_term(int sig){
     printf("\nterminaison propre :\n");
+    //terminaison des fils
     for(int i = 0; i < NB_PROC-1; i++){
-        Kill(Table_Fils[i], SIGKILL);
+        printf("Fils %d : %d \n",i,Table_Fils[i]);
+        kill(Table_Fils[i], SIGKILL);
     }
-    printf("terminaison des fils terminee\n");
-    printf("arret du serveur UwU\n");
+    fprintf(stderr,"terminaison des fils terminee\n");
+    fprintf(stderr,"arret du serveur UwU\n");
     exit(0);
 }
 
@@ -40,7 +43,6 @@ int main(int argc, char **argv)
     char client_ip_string[INET_ADDRSTRLEN];
     char client_hostname[MAX_NAME_LEN];
     Signal(SIGCHLD, handler);
-    Signal(SIGINT, handler_term);
     pid_t child = 1;
     char continu;
     
@@ -48,16 +50,25 @@ int main(int argc, char **argv)
 
     listenfd = Open_listenfd(2121);
 
-    for (int i=0 ; (i < (NB_PROC-1)) && (child != 0) ; i++){
+    //creation des fils et resensement
+    for (int i=0 ; (i < (NB_PROC-1)); i++){
         child = Fork();
         if(child != 0){
             Table_Fils[i] = child;
         }
+        else{
+            break;
+        }
+    }
+
+    //redefinition du signal SIGINT du pere
+    if(child!=0){
+        Signal(SIGINT,handler_term);
     }
     
 
     while (1) {
-        
+        //tout les processus attende une connection  
         while((connfd = accept(listenfd, (SA *)&clientaddr, &clientlen)) < 0);
         /* determine the name of the client */
         Getnameinfo((SA *) &clientaddr, clientlen,
@@ -70,10 +81,12 @@ int main(int argc, char **argv)
         printf("server connected to %s (%s)\n", client_hostname,
             client_ip_string);
 
+        //teste si le clien veut continuer
         while((Rio_readn(connfd, &continu, sizeof(char))) == 1){
             echo(connfd);
         }
         
+        //fermeture de la connection
         Close(connfd);
     }
 }

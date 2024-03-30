@@ -11,7 +11,12 @@ int main(int argc, char **argv)
     char *buf = init;
     char continu;
     struct stat st;
-    off_t lu;
+    off_t lu, dejaLu;
+
+    if(argc!=2){
+        printf("adresse serveur manquente. <<./echoclient IP>>\n");
+        exit(0);
+    }
 
 
     /*
@@ -19,7 +24,7 @@ int main(int argc, char **argv)
      * If necessary, Open_clientfd will perform the name resolution
      * to obtain the IP address.
      */
-    clientfd = Open_clientfd("172.17.46.58", 2121);
+    clientfd = Open_clientfd(argv[1], 2121);
     
     /*
      * At this stage, the connection is established between the client
@@ -76,10 +81,12 @@ int main(int argc, char **argv)
             int exist = stat(name, &st);
             if(exist != -1){
                 lu = st.st_size;
+                dejaLu = st.st_size;
             }
             else{
                 // variable qui nous permet de suivre l'evolution de l'ecriture
                 lu = 0;
+                dejaLu = 0;
             }
             Rio_writen(clientfd, &lu, sizeof(off_t));
 
@@ -126,7 +133,7 @@ int main(int argc, char **argv)
             // on teste si le fichier est complet
             if(lu == tailleFichier){
                 printf("transfert reussit\n");
-                float taille = (float)tailleFichier/1000;
+                float taille = (float)(tailleFichier-dejaLu)/1000;
                 
                 if ((fin-debut) != 0){
                     taille /=1000;
