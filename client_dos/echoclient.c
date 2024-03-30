@@ -5,10 +5,10 @@
 
 int main(int argc, char **argv)
 {
-    int clientfd,resultatfd;
-    char toto[MAXLINE];
-    off_t tailleFichier,taillepacket;
-    char *buf=toto;
+    int clientfd, resultatfd;
+    char init[MAXLINE];
+    off_t tailleFichier, taillePaquet;
+    char *buf = init;
     char continu;
     struct stat st;
     off_t lu;
@@ -19,7 +19,7 @@ int main(int argc, char **argv)
      * If necessary, Open_clientfd will perform the name resolution
      * to obtain the IP address.
      */
-    clientfd = Open_clientfd("im2ag-202-12", 2121);
+    clientfd = Open_clientfd("172.17.46.58", 2121);
     
     /*
      * At this stage, the connection is established between the client
@@ -27,117 +27,118 @@ int main(int argc, char **argv)
      * has not yet called "Accept" for this connection
      */
     printf("client connected to server OS\n");
-    //boucle de demande du clien
+    // boucle de requetes du client
     while(1){
-        //debut de la boucle
+        // debut de la boucle
         printf("ftp> ");
 
-        //recupere une ligne au clavier
-        //represente la commande a executer
-        //commande implementer : get ; bye
+        // recupere une ligne au clavier
+        // represente la commande a executer
+        // commandes implementees : get ; bye
         Fgets(buf, MAXLINE, stdin);
 
-        //test si on a entree "bye"
-        if(strcmp(buf,"bye\n")==0){
-            continu=0;
-            Rio_writen(clientfd,&continu,sizeof(char));
-            //dans ce cas ont arrete le processus
+        // teste si l'entree est la commande "bye"
+        if(strcmp(buf, "bye\n") == 0){
+            continu = 0;
+            Rio_writen(clientfd, &continu, sizeof(char));
+            // dans ce cas on arrete le processus
             Close(clientfd);
             exit(0);
         }
-        continu=1;
-        Rio_writen(clientfd,&continu,sizeof(char));
+        continu = 1;
+        Rio_writen(clientfd, &continu, sizeof(char));
 
-        //nous avon 2 commande de 3 caractere , le debt du fichier est au 5eme caractere
+        // nous avons 2 commandes de 3 caracteres , le debut du fichier est au 5eme caractere
         buf+=4;
 
-        //envois le nom du fichier au serveur ( a noter ici le nom ce fini par \n)
+        // envoie le nom du fichier au serveur ( a noter ici que le nom ce fini par \n)
         Rio_writen(clientfd, buf, strlen(buf));
 
-        //ont recupere la taille du fichier qu'on va resevoir
-        Rio_readn(clientfd,&tailleFichier,sizeof(off_t));
+        // on recupere la taille du fichier qu'on va recevoir
+        Rio_readn(clientfd, &tailleFichier, sizeof(off_t));
 
-        //si la taille est -1 alors ont a eu un probleme
-        if(tailleFichier==-1){
-            fprintf(stderr,"erreur lors de l'ouverture du fichier\n");
+        // si la taille est -1 alors on a eu un probleme
+        if(tailleFichier == -1){
+            fprintf(stderr, "Erreur lors de l'ouverture du fichier\n");
         }
         else{
 
-            //ont recupere la taille d'un packet
-            Rio_readn(clientfd,&taillepacket,sizeof(off_t));
+            // on recupere la taille d'un paquet
+            Rio_readn(clientfd, &taillePaquet,sizeof(off_t));
 
-            //vue que l'n a un nom de fichier fnissant par \n ont le remplace par \0
-            buf[strlen(buf)-1]='\0';
+            // vu que l'on a un nom de fichier finissant par \n on remplace le dernier caractere par \0
+            buf[strlen(buf)-1] = '\0';
 
-            //ont rajoute le chemain d'acce des fichier
-            char name[MAXLINE+11]="./fichier/\0";
-            strcat(name,buf);
+            // on rajoute le chemain d'acces des fichiers
+            char name[MAXLINE+11] = "./fichier/\0";
+            strcat(name, buf);
 
-            int exist=stat(name,&st);
-            if(exist!=-1){
-                lu=st.st_size;
+            int exist = stat(name, &st);
+            if(exist != -1){
+                lu = st.st_size;
             }
             else{
-                //varioable qui nous permer de suivre l'evolution de l'ecriture
-                lu=0;
+                // variable qui nous permet de suivre l'evolution de l'ecriture
+                lu = 0;
             }
-            Rio_writen(clientfd,&lu,sizeof(off_t));
+            Rio_writen(clientfd, &lu, sizeof(off_t));
 
-            //ont ouvre le fichier en ecriture
-            resultatfd=open(name,O_WRONLY|O_CREAT | O_APPEND,0644);
+            // on ouvre le fichier en ecriture
+            resultatfd = open(name, O_WRONLY | O_CREAT | O_APPEND, 0644);
 
-            //si ont obtien un descripteur non valide ont s'arrete
-            if(resultatfd<0){
-                fprintf(stderr,"erreur ouverture ecriture\n");
+            // si on  obtient un descripteur non valide on s'arrete
+            if(resultatfd < 0){
+                fprintf(stderr,"Erreur d'ouverture-ecriture\n");
                 exit(1);
             }
 
-            lseek(resultatfd,lu,SEEK_SET);
+            lseek(resultatfd, lu, SEEK_SET);
 
-            //ont commence a initialiser les variable utile a la recuperation du fichier
-            //tableau pour chaque packet
-            char doc[taillepacket]; //movaise reseption de la taille
-            //cronometre le temps
+            // on commence a initialiser les variables utiles a la recuperation du fichier
+            // tableau pour chaque paquet
+            char doc[taillePaquet]; // mauvaise reception de la taille
+            // chronometre pour le temps du transfert
             time_t debut = time(NULL);
-            
 
-
-            //tant qu'on a aps ressus tout le fichier
-            while((lu+taillepacket)<tailleFichier){
-                fprintf(stderr,"ouiiii\n");
-                //ont ajoute le decalage
-                lu+=taillepacket;
-                //ont recupere u packet
-                Rio_readn(clientfd,doc,taillepacket);
-                //on l'ecrit 
-                write(resultatfd,doc,taillepacket);
+            // tant qu'on n'a pas recus tout le fichier
+            while((lu + taillePaquet) < tailleFichier){
+                // on ajoute le decalage
+                lu += taillePaquet;
+                // on recupere un paquet
+                Rio_readn(clientfd, doc, taillePaquet);
+                // on l'ecrit 
+                write(resultatfd, doc, taillePaquet);
             }
             
-            //ont recupere les derneir donner
-            Rio_readn(clientfd,doc,(tailleFichier-lu));
-            //ont ecris les dernier donner
-            write(resultatfd,doc,(tailleFichier-lu));
+            // on recupere les dernieres donnees < un paquet entier
+            Rio_readn(clientfd, doc, (tailleFichier-lu));
+            // on ecrit les dernieres donnees
+            write(resultatfd, doc, (tailleFichier-lu));
 
-            lu+=(tailleFichier-lu);
+            lu += (tailleFichier-lu);
 
-            //on ferme le fichier d'ecriture
+            // on ferme le fichier d'ecriture
             Close(resultatfd);
 
-            //fin du timer
+            // fin du timer
             time_t fin = time(NULL);
 
-            //ont teste si le fichier est compler
-            if(lu==tailleFichier){
-                printf("transfer reussit\n");
-                printf("%ld bites resus en %ld seconde ",tailleFichier,(fin-debut));
-                if ((fin-debut)!=0){
-                    printf("(%ld kbit/s)\n",(tailleFichier/(fin-debut)));   
+            // on teste si le fichier est complet
+            if(lu == tailleFichier){
+                printf("transfert reussit\n");
+                float taille = (float)tailleFichier/1000;
+                
+                if ((fin-debut) != 0){
+                    taille /=1000;
+                    float res = taille / (fin-debut);
+                    printf("%.3f mega octets recus en %ld secondes (%.2f Mbit/s)\n", taille, (fin-debut), res);
                 }
                 else{
-                    printf("(calcule imposible temps trop cour)\n");
+                    printf("%.3f kilo octets recus en %ld secondes ",taille,(fin-debut));
+                    printf("(calcul impossible pour un transfert aussi rapide)\n");
                 }
             }
         }
-        buf=toto;
+        buf = init;
     }
 }
